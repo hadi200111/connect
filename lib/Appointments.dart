@@ -7,7 +7,7 @@ class Appointments {
   int appointmentLength;
   String location;
   String? notes;
-  bool status;
+  String status;
 
   Appointments({
     required this.id,

@@ -124,6 +124,7 @@ class _CalendarPageState extends State<CalendarPage> {
 
   Future<List<Appointment>> getAppointments() async {
     List<Appointment> meetings = <Appointment>[];
+    bool check = false;
 
     QuerySnapshot querySnapshot =
         await FirebaseFirestore.instance.collection('Appointments').get();
@@ -147,7 +148,18 @@ class _CalendarPageState extends State<CalendarPage> {
         appointmentColor = Colors.red;
       }
 
-      if ((field5 == Globals.userID && field6 == false) || field6 == true) {
+      for (int i = 0; i < Globals.Schedule.length; i++) {
+        if (Globals.Schedule[i] == "Public" ||
+            Globals.Schedule[i] == "Private") {
+        } else if (field6 == Globals.Schedule[i]) {
+          check = true;
+        }
+      }
+      if ((field5 == Globals.userID && field6 == "Private") ||
+          field6 == "Public" ||
+          check) {
+        print(field6 + " " + field5 + check.toString());
+        check = false;
         meetings.add(Appointment(
           startTime: mergedDateTime,
           endTime: mergedDateTime1,

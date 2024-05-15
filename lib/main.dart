@@ -8,6 +8,7 @@ import 'package:connect/Posts.dart';
 class Globals {
   static String userID = "";
   static String roll = "";
+  static List<String> Schedule = [];
   static Appointments app = Appointments(
       id: "1192016",
       subject: "subject",
@@ -16,18 +17,18 @@ class Globals {
       startTime: DateTime(2024, 9, 9, 9),
       appointmentLength: 2,
       location: "location",
-      status: true);
+      status: "Private");
 }
 
 Future<void> main() async {
   //WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: const FirebaseOptions(
-      apiKey: "AIzaSyDK07y9RLzWSoLPrxAgY_gegeL-_qNsY8M",
-      appId: "1:476838126677:android:a4b14bb36537f271d960dc",
-      messagingSenderId: "476838126677",
-      projectId: "campus-connect-3917b",
-    ),
+        apiKey: "AIzaSyDK07y9RLzWSoLPrxAgY_gegeL-_qNsY8M",
+        appId: "1:476838126677:android:a4b14bb36537f271d960dc",
+        messagingSenderId: "476838126677",
+        projectId: "campus-connect-3917b",
+        storageBucket: "campus-connect-3917b.appspot.com"),
   );
   runApp(const MyApp());
 }
@@ -63,6 +64,29 @@ Future<int> fetchData(List<Posts> posts) async {
     } */
   });
   return 0;
+}
+
+Future<bool> fetchUserData(String email, String password) async {
+  bool check = false;
+  QuerySnapshot querySnapshot =
+      await FirebaseFirestore.instance.collection('Users').get();
+  querySnapshot.docs.forEach((doc) {
+    // Accessing individual fields
+
+    var myemail = doc.get("email");
+    var mypassword = doc.get("password");
+
+    if (myemail == email && mypassword == password) {
+      check = true;
+      Globals.userID = doc.get("firstName");
+      Globals.roll = doc.get("role");
+      List<dynamic> scheduleFromFirestore = doc.get("Schedule");
+      Globals.Schedule = List<String>.from(
+          scheduleFromFirestore.map((schedule) => schedule.toString()));
+      Globals.Schedule.addAll(['Private', 'Public']);
+    }
+  });
+  return check;
 }
 
 class MyApp extends StatelessWidget {
@@ -127,6 +151,7 @@ class _MyHomePageState extends State<MyHomePage> {
               width: 300.0,
               child: TextField(
                 controller: passwordController,
+                obscureText: true,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(),
                   hintText: 'Password',
@@ -145,27 +170,15 @@ class _MyHomePageState extends State<MyHomePage> {
                         MaterialStateProperty.all(Colors.lightBlue)),
                 //--------------------------------------------------------------->
                 onPressed: () async {
-                  String username = usernameController.text;
+                  String email = usernameController.text;
                   String password = passwordController.text;
-                  if (username == "1192016" && password == "1192016") {
-                    Globals.userID = username;
-                    Globals.roll = "Student";
-                    await fetchData(posts);
+                  if (await fetchUserData(email, password)) {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                           builder: (context) => const Main_Page()),
                     );
-                  } else if (username == "12345" && password == "12345") {
-                    Globals.userID = username;
-                    Globals.roll = "Doctor";
-                    await fetchData(posts);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const Main_Page()),
-                    );
-                  } else {}
+                  }
                 },
                 //---------------------------------------------------------------------->
                 child: const Text('Login'),

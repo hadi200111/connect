@@ -68,22 +68,18 @@ class _AppointmentsInputFormState extends State<Addappointment> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Row(
-                mainAxisAlignment:
-                    MainAxisAlignment.spaceEvenly,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   IconButton(
                     onPressed: () {
-                      
                       showModalBottomSheet(
                         context: context,
                         builder: (BuildContext context) {
                           return Container(
-                            height:
-                                300,
+                            height: 300,
                             child: SfDateRangePicker(
                               onSelectionChanged:
                                   (DateRangePickerSelectionChangedArgs args) {
-                                
                                 setState(() {
                                   selectedDate = args.value;
                                   print("AA");
@@ -96,19 +92,16 @@ class _AppointmentsInputFormState extends State<Addappointment> {
                         },
                       );
                     },
-                    icon: Icon(
-                        Icons.calendar_today),
+                    icon: Icon(Icons.calendar_today),
                     tooltip: 'Select Date',
                   ),
                   IconButton(
                     onPressed: () {
-                      
                       showModalBottomSheet(
                         context: context,
                         builder: (BuildContext context) {
                           return Container(
-                            height:
-                                300,
+                            height: 300,
                             child: TimePickerSpinner(
                               locale: const Locale('en', ''),
                               time: dateTime,
@@ -124,7 +117,6 @@ class _AppointmentsInputFormState extends State<Addappointment> {
                               ),
                               isForce2Digits: true,
                               onTimeChange: (time) {
-                                
                                 setState(() {
                                   dateTime = time;
                                   print("that");
@@ -143,13 +135,13 @@ class _AppointmentsInputFormState extends State<Addappointment> {
                             dateTime.hour,
                             dateTime.minute,
                           );
+                          print(dateTime.hour.toString() + "HAHA");
                           print("this");
                           print(dateTime);
                         });
                       });
                     },
-                    icon: const Icon(
-                        Icons.access_time),
+                    icon: const Icon(Icons.access_time),
                     tooltip: 'Select Time',
                   ),
                   if (Globals.roll == "Doctor")
@@ -162,8 +154,8 @@ class _AppointmentsInputFormState extends State<Addappointment> {
                           dropdownValue = newValue!;
                         });
                       },
-                      items: <String>['Private', 'Public']
-                          .map<DropdownMenuItem<String>>((String value) {
+                      items: Globals.Schedule.map<DropdownMenuItem<String>>(
+                          (String value) {
                         return DropdownMenuItem<String>(
                           value: value,
                           child: Row(
@@ -234,7 +226,7 @@ class _AppointmentsInputFormState extends State<Addappointment> {
       appointmentLength: int.parse(appointmentLengthController.text),
       location: locationController.text,
       notes: notesController.text.isNotEmpty ? notesController.text : null,
-      status: dropdownValue == 'Private' ? false : true,
+      status: dropdownValue,
     );
 
     print(appointments);

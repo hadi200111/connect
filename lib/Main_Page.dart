@@ -1,4 +1,7 @@
 import 'package:connect/CalendarPage.dart';
+import 'package:connect/Library.dart';
+import 'package:connect/LibraryPage/LibraryPage.dart';
+import 'package:connect/LibraryPage/PrevoisMaterial.dart';
 import 'package:connect/PostWidget.dart';
 import 'package:flutter/material.dart';
 import 'package:connect/Posts.dart';
@@ -11,7 +14,7 @@ List<Posts> posts = [
     caption: 'ضيعت شنتتي في المجمع, حدا شافها؟',
     likeCounter: 0,
   ),
-  Posts(
+  /*Posts(
     userName: 'Dana',
     userImageUrl: 'https://picsum.photos/250?image=9',
     postImageUrl: 'https://picsum.photos/250?image=9',
@@ -59,7 +62,7 @@ List<Posts> posts = [
     postImageUrl: 'https://picsum.photos/250?image=9',
     caption: 'ضيعت شنتتي في المجمع, حدا شافها؟',
     likeCounter: 0,
-  ),
+  ), */
 ];
 
 class Main_Page extends StatefulWidget {
@@ -100,7 +103,22 @@ class Main_PageState extends State<Main_Page> {
           ListTile(
             leading: Icon(Icons.library_books),
             title: const Text('Library'),
-            onTap: () {},
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const LibraryPage()),
+              );
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.book),
+            title: const Text('PrevoisMaterial'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const Library()),
+              );
+            },
           ),
           ListTile(
             leading: Icon(Icons.settings),
