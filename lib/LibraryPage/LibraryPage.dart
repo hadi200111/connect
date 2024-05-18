@@ -1,10 +1,15 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect/Library.dart';
 import 'package:connect/LibraryPage/AddCategoryDialog.dart';
 import 'package:connect/LibraryPage/BooksPage.dart';
 import 'package:connect/LibraryPage/CategoryTile.dart';
 import 'package:connect/LibraryPage/SearchPage.dart';
+import 'package:connect/main.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 
 String myid = "";
 Map<String, Map<String, List<String>>> _categories = {};
@@ -20,7 +25,7 @@ class _LibraryPageState extends State<LibraryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      /*appBar: AppBar(
         title: Text(
           'Library',
           style: TextStyle(
@@ -40,7 +45,7 @@ class _LibraryPageState extends State<LibraryPage> {
           ),
         ],
         backgroundColor: Colors.deepPurpleAccent,
-      ),
+      ),*/
       body: FutureBuilder(
         future: getCata(), // Get the list of majors
         builder: (context, snapshot) {
@@ -227,8 +232,10 @@ class _SubCategoryExpansionTileState extends State<SubCategoryExpansionTile> {
       title: Text(widget.subCategory),
       children: widget.courses
           .map((course) => GestureDetector(
-                onTap: () {
+                onTap: () async {
                   // Navigate to the book page when tapping on a course
+                  Globals.courseName = course;
+                  await downloadPDF("Sec. 4.3.pdf", books);
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -242,5 +249,41 @@ class _SubCategoryExpansionTileState extends State<SubCategoryExpansionTile> {
               ))
           .toList(),
     );
+  }
+
+  Future<File> downloadPDF(String fileName, List<Book> mybooks) async {
+    try {
+      print("hey2");
+      // Get a reference to the file in Firebase Storage
+      Reference reference =
+          FirebaseStorage.instance.ref().child('pdfs/$fileName');
+
+      // Get the temporary directory
+      print("hey1");
+      Directory tempDir = await getTemporaryDirectory();
+      String tempPath = tempDir.path;
+      File tempFile = File('$tempPath/$fileName');
+
+      // Download the file
+      await reference.writeToFile(tempFile);
+      print(tempFile.path);
+
+      Book newBook = Book(
+        title:
+            "something", // You can set a default title or let the user choose
+        author: Globals
+            .userID, // You can set a default author or let the user choose
+        rating: 0, // You can set a default rating or let the user choose
+        pdfUrl: tempFile.path,
+      );
+      // Add the new book to the list of books
+      books.add(newBook);
+
+      // Return the downloaded file
+      return tempFile;
+    } catch (e) {
+      print('Error downloading PDF: $e');
+      throw e;
+    }
   }
 }

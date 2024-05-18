@@ -1,17 +1,13 @@
-import 'dart:typed_data';
-
-import 'package:connect/Addappointment.dart';
-import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
-import 'package:flutter_pdfview/flutter_pdfview.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'dart:io';
-
+import 'dart:typed_data';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connect/main.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import 'dart:typed_data';
+import 'package:flutter_pdfview/flutter_pdfview.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:path_provider/path_provider.dart';
 
 class Book {
   final String title;
@@ -19,12 +15,37 @@ class Book {
   final double rating;
   final String pdfUrl;
 
-  Book(
-      {required this.title,
-      required this.author,
-      required this.rating,
-      required this.pdfUrl});
+  Book({
+    required this.title,
+    required this.author,
+    required this.rating,
+    required this.pdfUrl,
+  });
+
+  factory Book.fromDocument(String title, DocumentSnapshot doc) {
+    return Book(
+      title: title,
+      author: doc['author'],
+      rating: doc['rating'].toDouble(),
+      pdfUrl: doc['pdfUrl'],
+    );
+  }
 }
+
+List<Book> books = [
+  Book(
+    title: "Book 1",
+    author: "Author 1",
+    rating: 4.5,
+    pdfUrl: "/storage/emulated/0/Download/SecondReport.pdf",
+  ),
+  Book(
+    title: "Book 2",
+    author: "Author 2",
+    rating: 3.8,
+    pdfUrl: "/storage/emulated/0/Download/SecondReport.pdf",
+  ),
+];
 
 class Library extends StatefulWidget {
   const Library({Key? key}) : super(key: key);
@@ -34,95 +55,29 @@ class Library extends StatefulWidget {
 }
 
 class _LibraryPageState extends State<Library> {
-  List<Book> books = [
-    Book(
-        title: "Book 1",
-        author: "Author 1",
-        rating: 4.5,
-        pdfUrl: "https://example.com/book1.pdf"),
-    Book(
-        title: "Book 2",
-        author: "Author 2",
-        rating: 3.8,
-        pdfUrl: "https://example.com/book2.pdf"),
-    // Add more books as needed
-  ];
-
   Uint8List? _pdfBytes;
-
-  Future<void> _uploadFileToFirebaseStorage(
-      Uint8List bytes, String course, String name) async {
-    try {
-      firebase_storage.Reference ref = firebase_storage.FirebaseStorage.instance
-          .ref()
-          .child(course)
-          .child(name);
-
-      await ref.putData(bytes);
-
-      String downloadURL = await ref.getDownloadURL();
-
-      // Save downloadURL to Firestore
-      await FirebaseFirestore.instance
-          .collection('pdfs')
-          .add({'url': downloadURL});
-    } catch (e) {
-      print('Error uploading file: $e');
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.lightGreen[300],
       appBar: AppBar(
         title: Text('Library Page'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            tooltip: 'Book',
-            onPressed: () {
-              // Implement navigation to add appointment screen
-            },
-          ),
+          if (Globals.roll == "Doctor")
+            IconButton(
+              icon: const Icon(Icons.add),
+              tooltip: 'Book',
+              onPressed: () async {
+                await _pickAndSetPdf();
+              },
+            ),
         ],
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            SizedBox(height: 30),
-            SizedBox(
-              height: 50,
-              width: 250,
-              child: TextButton(
-                style: ButtonStyle(
-                  foregroundColor:
-                      MaterialStateProperty.all<Color>(Colors.black),
-                  backgroundColor: MaterialStateProperty.all(Colors.lightBlue),
-                ),
-                onPressed: () async {
-                  // Open the file picker
-                  FilePickerResult? result =
-                      await FilePicker.platform.pickFiles(
-                    type: FileType.custom,
-                    allowedExtensions: ['pdf'],
-                  );
-
-                  if (result != null) {
-                    // File picked
-                    setState(() {
-                      _pdfBytes = result.files.single.bytes;
-                    });
-                    // Upload the file to Firebase Storage
-                    await _uploadFileToFirebaseStorage(
-                        _pdfBytes!, "COMP333", "12345-Chapter 1.pdf");
-                  } else {
-                    // User canceled the picker
-                  }
-                },
-                child: const Text('import'),
-              ),
-            ),
             Expanded(
               child: ListView.builder(
                 itemCount: books.length,
@@ -137,6 +92,43 @@ class _LibraryPageState extends State<Library> {
       ),
     );
   }
+
+  Future<void> _pickAndSetPdf() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+    );
+
+    if (result != null) {
+      setState(() {
+        _pdfBytes = result.files.single.bytes;
+        // Create a new Book instance
+        Book newBook = Book(
+          title: result.files.single
+              .name, // You can set a default title or let the user choose
+          author: Globals
+              .userID, // You can set a default author or let the user choose
+          rating: 0, // You can set a default rating or let the user choose
+          pdfUrl: result.files.single.path!,
+        );
+        // Add the new book to the list of books
+        books.add(newBook);
+      });
+    } else {
+      // User canceled the picker
+    }
+    if (result != null) {
+      File file = File(result.files.single.path!);
+      String fileName = result.files.single.name;
+      String mycourse = Globals.courseName;
+      Reference reference =
+          FirebaseStorage.instance.ref().child('$mycourse/$fileName');
+      UploadTask uploadTask = reference.putFile(file);
+      await uploadTask.whenComplete(() => print('File uploaded'));
+    } else {
+      // User canceled the picker
+    }
+  }
 }
 
 class BookItem extends StatelessWidget {
@@ -147,28 +139,59 @@ class BookItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: Colors.grey[200], // Set background color for the book item
+      color: Colors.grey[200],
       margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       child: ListTile(
-        title: Text(book.title),
+        title: Text(
+          book.title,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Author: ${book.author}",
-                style: TextStyle(
-                    color: Colors.black87)), // Set text color for author
-            Text("Rating: ${book.rating}",
-                style: TextStyle(
-                    color: Colors.black87)), // Set text color for rating
+            SizedBox(height: 4),
+            Text(
+              "Author: ${book.author}",
+              style: TextStyle(
+                color: Colors.black87,
+                fontSize: 14,
+              ),
+            ),
+            SizedBox(height: 2),
+            Row(
+              children: [
+                Icon(
+                  Icons.star,
+                  size: 16,
+                  color: Colors.amber,
+                ),
+                SizedBox(width: 4),
+                Text(
+                  "${book.rating}",
+                  style: TextStyle(
+                    color: Colors.black87,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
         trailing: IconButton(
-          icon: Icon(Icons.download,
-              color: Colors.blue), // Set icon color for download button
+          icon: Icon(
+            Icons.picture_as_pdf,
+            color: Colors.blue,
+          ),
           onPressed: () {
-            // Add download functionality here
-            // You can use packages like 'url_launcher' to open the PDF link in a browser
-            // Or use a PDF viewer package to view the PDF in the app
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => PDFViewerPage(pdfUrl: book.pdfUrl),
+              ),
+            );
           },
         ),
       ),
@@ -176,8 +199,77 @@ class BookItem extends StatelessWidget {
   }
 }
 
-void main() {
-  runApp(MaterialApp(
-    home: Library(),
-  ));
+class PDFViewerPage extends StatefulWidget {
+  final String pdfUrl;
+
+  const PDFViewerPage({Key? key, required this.pdfUrl}) : super(key: key);
+
+  @override
+  _PDFViewerPageState createState() => _PDFViewerPageState();
+}
+
+class _PDFViewerPageState extends State<PDFViewerPage> {
+  bool _isLoading = true;
+  bool _fileNotFound = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkPermissions();
+  }
+
+  Future<void> _checkPermissions() async {
+    try {
+      if (Platform.isAndroid) {
+        PermissionStatus status = await Permission.storage.request();
+        if (!status.isGranted) {
+          throw 'Storage permission is required to view PDF files.';
+        }
+      }
+      // For iOS, handle file access permissions accordingly
+    } catch (e) {
+      print('Error checking permissions: $e');
+      // Handle permission errors here
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('PDF Viewer'),
+      ),
+      body: _fileNotFound
+          ? Center(
+              child: Text('File not found.'),
+            )
+          : Stack(
+              children: [
+                PDFView(
+                  filePath: widget.pdfUrl,
+                  onRender: (pages) {
+                    setState(() {
+                      _isLoading = false;
+                    });
+                  },
+                  onError: (error) {
+                    print(error.toString());
+                    setState(() {
+                      _fileNotFound = true;
+                      _isLoading = false;
+                    });
+                  },
+                  onPageError: (page, error) {
+                    print('$page: ${error.toString()}');
+                  },
+                ),
+                _isLoading
+                    ? Center(
+                        child: CircularProgressIndicator(),
+                      )
+                    : Container(),
+              ],
+            ),
+    );
+  }
 }

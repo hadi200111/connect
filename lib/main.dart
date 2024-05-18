@@ -9,6 +9,7 @@ class Globals {
   static String userID = "";
   static String roll = "";
   static List<String> Schedule = [];
+  static String courseName = "";
   static Appointments app = Appointments(
       id: "1192016",
       subject: "subject",
@@ -22,6 +23,7 @@ class Globals {
 
 Future<void> main() async {
   //WidgetsFlutterBinding.ensureInitialized();
+  runApp(const MyApp());
   await Firebase.initializeApp(
     options: const FirebaseOptions(
         apiKey: "AIzaSyDK07y9RLzWSoLPrxAgY_gegeL-_qNsY8M",
@@ -30,7 +32,6 @@ Future<void> main() async {
         projectId: "campus-connect-3917b",
         storageBucket: "campus-connect-3917b.appspot.com"),
   );
-  runApp(const MyApp());
 }
 
 Future<int> fetchData(List<Posts> posts) async {

@@ -8,7 +8,7 @@ import 'package:connect/Posts.dart';
 
 List<Posts> posts = [
   Posts(
-    userName: 'Hadi',
+    userName: 'DANAR',
     userImageUrl: 'https://picsum.photos/250?image=9',
     postImageUrl: 'https://picsum.photos/250?image=9',
     caption: 'ضيعت شنتتي في المجمع, حدا شافها؟',

@@ -36,6 +36,8 @@ dependencies:
   cloud_firestore: ^4.0.0
   file_picker: ^4.0.0
   flutter_pdfview: ^1.0.0
+  permission_handler: ^10.2.0
+  path_provider: ^2.0.2
 
 
   # The following adds the Cupertino Icons font to your application.
