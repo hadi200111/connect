@@ -1,4 +1,3 @@
-import 'package:connect/LibraryPage/MajorTile';
 import 'package:flutter/material.dart';
 
 class CategoryTile extends StatefulWidget {

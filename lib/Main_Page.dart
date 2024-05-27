@@ -3,6 +3,9 @@ import 'package:connect/Library.dart';
 import 'package:connect/LibraryPage/LibraryPage.dart';
 import 'package:connect/LibraryPage/PrevoisMaterial.dart';
 import 'package:connect/PostWidget.dart';
+import 'package:connect/WelcomeLogIn/WelcomePage.dart';
+import 'package:connect/main.dart';
+import 'package:connect/masseging/ChatScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:connect/Posts.dart';
 
@@ -121,9 +124,29 @@ class Main_PageState extends State<Main_Page> {
             },
           ),
           ListTile(
-            leading: Icon(Icons.settings),
-            title: const Text('Settings'),
-            onTap: () {},
+            leading: Icon(Icons.login),
+            title: const Text('Login'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => WelcomePage()),
+              );
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.message),
+            title: const Text('masseges'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ChatScreen(
+                    chatId: '1', // replace with actual chatId
+                    currentUserId: Globals.userID, // replace with actual userId
+                  ),
+                ),
+              );
+            },
           ),
         ],
       )),

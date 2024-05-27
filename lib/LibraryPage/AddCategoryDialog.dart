@@ -1,3 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connect/LibraryPage/LibraryPage.dart';
+import 'package:connect/main.dart';
 import 'package:flutter/material.dart';
 
 class AddCategoryDialog extends StatelessWidget {
@@ -12,7 +15,7 @@ class AddCategoryDialog extends StatelessWidget {
     String newCategoryName = '';
     return AlertDialog(
       title: Text(
-        'Add New College',
+        'Add New Course',
         style: TextStyle(
           fontWeight: FontWeight.bold,
         ),
@@ -22,7 +25,7 @@ class AddCategoryDialog extends StatelessWidget {
           newCategoryName = value;
         },
         decoration: InputDecoration(
-          labelText: 'College Name',
+          labelText: 'Course Name',
           border: OutlineInputBorder(),
         ),
       ),

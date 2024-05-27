@@ -1,15 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect/Appointments.dart';
 import 'package:connect/Main_Page.dart';
+import 'package:connect/masseging/ChatProvider.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:connect/Posts.dart';
+import 'package:provider/provider.dart';
 
 class Globals {
   static String userID = "";
   static String roll = "";
   static List<String> Schedule = [];
   static String courseName = "";
+  static List<Map<String, Map<String, List<String>>>> categories = [];
   static Appointments app = Appointments(
       id: "1192016",
       subject: "subject",
@@ -95,14 +98,17 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+    return ChangeNotifierProvider(
+      create: (_) => ChatProvider(),
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Flutter Demo',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+          useMaterial3: true,
+        ),
+        home: const MyHomePage(title: 'Connect Login'),
       ),
-      home: const MyHomePage(title: 'Connect Login'),
     );
   }
 }

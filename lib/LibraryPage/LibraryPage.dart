@@ -1,15 +1,8 @@
-import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect/Library.dart';
 import 'package:connect/LibraryPage/AddCategoryDialog.dart';
-import 'package:connect/LibraryPage/BooksPage.dart';
-import 'package:connect/LibraryPage/CategoryTile.dart';
-import 'package:connect/LibraryPage/SearchPage.dart';
 import 'package:connect/main.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
 
 String myid = "";
 Map<String, Map<String, List<String>>> _categories = {};
@@ -87,47 +80,6 @@ class _LibraryPageState extends State<LibraryPage> {
           }
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _addCategory,
-        child: Icon(Icons.add),
-        backgroundColor: Colors.deepPurpleAccent,
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-    );
-  }
-
-  void _addCategory() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AddCategoryDialog(
-          onCategoryAdded: (category) {
-            if (_categories.containsKey(category)) {
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    title: Text('Category Already Exists'),
-                    content: Text('The category "$category" already exists.'),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        child: Text('OK'),
-                      ),
-                    ],
-                  );
-                },
-              );
-            } else {
-              setState(() {
-                _categories[category] = {};
-              });
-            }
-          },
-        );
-      },
     );
   }
 }
@@ -174,6 +126,8 @@ Future<List<Map<String, Map<String, List<String>>>>> getCourses(
         courses.add(courseDoc.id);
       }
 
+      courses.add("Add Course");
+
       subCategories[subCategory] = courses;
     }
 
@@ -201,21 +155,24 @@ class _CategoryExpansionTileState extends State<CategoryExpansionTile> {
   Widget build(BuildContext context) {
     return ExpansionTile(
       title: Text(widget.category),
-      children: widget.subCategories.entries
-          .map((entry) => SubCategoryExpansionTile(
-                subCategory: entry.key,
-                courses: entry.value,
-              ))
-          .toList(),
+      children: widget.subCategories.entries.map((entry) {
+        return SubCategoryExpansionTile(
+          category: widget.category,
+          subCategory: entry.key,
+          courses: entry.value,
+        );
+      }).toList(),
     );
   }
 }
 
 class SubCategoryExpansionTile extends StatefulWidget {
+  final String category;
   final String subCategory;
   final List<String> courses;
 
   const SubCategoryExpansionTile({
+    required this.category,
     required this.subCategory,
     required this.courses,
   });
@@ -226,64 +183,103 @@ class SubCategoryExpansionTile extends StatefulWidget {
 }
 
 class _SubCategoryExpansionTileState extends State<SubCategoryExpansionTile> {
+  void _addCourse() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AddCategoryDialog(
+          onCategoryAdded: (courseName) {
+            addCourse(widget.category, widget.subCategory, courseName);
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> addCourse(
+      String category, String subCategory, String courseName) async {
+    try {
+      CollectionReference categoriesCollection =
+          FirebaseFirestore.instance.collection('Categories');
+
+      // Reference to the specific category and subcategory
+      DocumentReference categoryDocRef = categoriesCollection.doc(category);
+      CollectionReference subCategoriesCollection =
+          categoryDocRef.collection('mymajors');
+      DocumentReference subCategoryDocRef =
+          subCategoriesCollection.doc(subCategory);
+      CollectionReference coursesCollection =
+          subCategoryDocRef.collection('courses');
+
+      // Add a new course to the subcollection
+      await coursesCollection.doc(courseName).set({'name': courseName});
+
+      // Update the local state to reflect the new course
+      setState(() {
+        widget.courses.add(courseName);
+      });
+
+      print('Course added successfully.');
+    } catch (error) {
+      print('Error adding course: $error');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return ExpansionTile(
       title: Text(widget.subCategory),
-      children: widget.courses
-          .map((course) => GestureDetector(
-                onTap: () async {
-                  // Navigate to the book page when tapping on a course
-                  Globals.courseName = course;
-                  await downloadPDF("Sec. 4.3.pdf", books);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => Library(),
-                    ),
-                  );
-                },
-                child: ListTile(
-                  title: Text(course),
+      children: widget.courses.map((course) {
+        return GestureDetector(
+          onTap: () async {
+            if (course == "Add Course") {
+              _addCourse();
+            } else {
+              Globals.courseName = course;
+              books.clear();
+              await getBooks(Globals.courseName, books);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => Library(),
                 ),
-              ))
-          .toList(),
+              );
+            }
+          },
+          child: ListTile(
+            title: Text(
+              course,
+              style: TextStyle(
+                color: course == "Add Course" ? Colors.blue : null,
+              ),
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 
-  Future<File> downloadPDF(String fileName, List<Book> mybooks) async {
-    try {
-      print("hey2");
-      // Get a reference to the file in Firebase Storage
-      Reference reference =
-          FirebaseStorage.instance.ref().child('pdfs/$fileName');
+  Future<List<Book>> getBooks(String courseName, List<Book> books) async {
+    QuerySnapshot querySnapshot =
+        await FirebaseFirestore.instance.collection('Book').get();
+    querySnapshot.docs.forEach((doc) {
+      var field1 = doc.get("author");
+      var field2 = doc.get("rating");
+      var field3 = doc.get("uploadDate");
+      var field4 = doc.get("course");
+      var field5 = doc.id;
 
-      // Get the temporary directory
-      print("hey1");
-      Directory tempDir = await getTemporaryDirectory();
-      String tempPath = tempDir.path;
-      File tempFile = File('$tempPath/$fileName');
-
-      // Download the file
-      await reference.writeToFile(tempFile);
-      print(tempFile.path);
-
-      Book newBook = Book(
-        title:
-            "something", // You can set a default title or let the user choose
-        author: Globals
-            .userID, // You can set a default author or let the user choose
-        rating: 0, // You can set a default rating or let the user choose
-        pdfUrl: tempFile.path,
-      );
-      // Add the new book to the list of books
-      books.add(newBook);
-
-      // Return the downloaded file
-      return tempFile;
-    } catch (e) {
-      print('Error downloading PDF: $e');
-      throw e;
-    }
+      if (field4 == courseName) {
+        Book mybook = new Book(
+            title: field5,
+            author: field1,
+            rating: field2,
+            pdfUrl: field5,
+            course: field4,
+            uploadDate: (field3 as Timestamp).toDate());
+        books.add(mybook);
+      }
+    });
+    return books;
   }
 }
