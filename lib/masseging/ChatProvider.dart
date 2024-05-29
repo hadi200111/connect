@@ -38,6 +38,21 @@ class ChatProvider with ChangeNotifier {
   }
 
   Future<String> createChat(List<String> users) async {
+    // Check if a chat with these users already exists
+    QuerySnapshot querySnapshot = await _firestore
+        .collection('chats')
+        .where('users', arrayContains: users[0])
+        .get();
+
+    for (var doc in querySnapshot.docs) {
+      List<dynamic> userList = doc['users'];
+      if (userList.contains(users[1])) {
+        // Chat already exists
+        return doc.id;
+      }
+    }
+
+    // Create a new chat
     DocumentReference chatRef = await _firestore.collection('chats').add({
       'users': users,
       'lastMessageTime': FieldValue.serverTimestamp(),

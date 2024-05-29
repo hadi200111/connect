@@ -15,6 +15,7 @@ class ChatScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final chatProvider = Provider.of<ChatProvider>(context);
+    print(chatId);
 
     TextEditingController messageController = TextEditingController();
 
@@ -36,12 +37,42 @@ class ChatScreen extends StatelessWidget {
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
                     Messages message = messages[index];
-                    return ListTile(
-                      title: Text(message.text),
-                      subtitle: Text(message.senderId),
-                      trailing: message.senderId == currentUserId
-                          ? Icon(Icons.check)
-                          : null,
+                    bool isSentByMe = message.senderId == currentUserId;
+                    return Align(
+                      alignment: isSentByMe
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
+                      child: Container(
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        margin:
+                            EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                        decoration: BoxDecoration(
+                          color: isSentByMe ? Colors.blue : Colors.grey[300],
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              message.text,
+                              style: TextStyle(
+                                  color:
+                                      isSentByMe ? Colors.white : Colors.black),
+                            ),
+                            SizedBox(height: 5),
+                            Text(
+                              message.senderId,
+                              style: TextStyle(
+                                color: isSentByMe
+                                    ? Colors.white70
+                                    : Colors.black54,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     );
                   },
                 );
@@ -67,10 +98,10 @@ class ChatScreen extends StatelessWidget {
                     String text = messageController.text.trim();
                     if (text.isNotEmpty) {
                       Messages message = Messages(
+                        id: '', // Firestore will generate an ID
                         senderId: currentUserId,
                         text: text,
                         timestamp: Timestamp.now(),
-                        id: '2',
                       );
                       chatProvider.sendMessage(chatId, message);
                       messageController.clear();

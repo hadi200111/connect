@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect/Appointments.dart';
 import 'package:connect/Main_Page.dart';
+import 'package:connect/WelcomeLogIn/WelcomePage.dart';
 import 'package:connect/masseging/ChatProvider.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -9,8 +10,10 @@ import 'package:provider/provider.dart';
 
 class Globals {
   static String userID = "";
+  static String userName = "";
   static String roll = "";
   static List<String> Schedule = [];
+  static List<String> Friends = [];
   static String courseName = "";
   static List<Map<String, Map<String, List<String>>>> categories = [];
   static Appointments app = Appointments(
@@ -88,6 +91,9 @@ Future<bool> fetchUserData(String email, String password) async {
       Globals.Schedule = List<String>.from(
           scheduleFromFirestore.map((schedule) => schedule.toString()));
       Globals.Schedule.addAll(['Private', 'Public']);
+      List<dynamic> friendsFromFirestore = doc.get("Friends");
+      Globals.Friends = List<String>.from(
+          friendsFromFirestore.map((friends) => friends.toString()));
     }
   });
   return check;
@@ -107,7 +113,7 @@ class MyApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
           useMaterial3: true,
         ),
-        home: const MyHomePage(title: 'Connect Login'),
+        home: WelcomePage(),
       ),
     );
   }
