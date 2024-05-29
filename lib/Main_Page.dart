@@ -1,21 +1,20 @@
 import 'package:connect/CalendarPage.dart';
 import 'package:connect/Library.dart';
 import 'package:connect/LibraryPage/LibraryPage.dart';
-import 'package:connect/LibraryPage/PrevoisMaterial.dart';
 import 'package:connect/PostWidget.dart';
+import 'package:connect/WelcomeLogIn/LoginPage.dart';
 import 'package:connect/masseging/ChatListScreen.dart';
-import 'package:connect/WelcomeLogIn/WelcomePage.dart';
 import 'package:connect/main.dart';
 import 'package:connect/masseging/ChatProvider.dart';
-import 'package:connect/masseging/ChatScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:connect/Posts.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 List<Posts> posts = [
   // Example posts
   Posts(
-    userName: 'DANAR',
+    userName: 'DANA',
     userImageUrl: 'https://picsum.photos/250?image=9',
     postImageUrl: 'https://picsum.photos/250?image=9',
     caption: 'ضيعت شنتتي في المجمع, حدا شافها؟',
@@ -32,6 +31,15 @@ class Main_Page extends StatefulWidget {
 
 class Main_PageState extends State<Main_Page> {
   int currentPage = 0;
+
+  Future<void> _logout(BuildContext context) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('keepLoggedIn', false);
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => LogInPage()),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -82,14 +90,9 @@ class Main_PageState extends State<Main_Page> {
               },
             ),
             ListTile(
-              leading: Icon(Icons.login),
-              title: const Text('Login'),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => WelcomePage()),
-                );
-              },
+              leading: Icon(Icons.logout),
+              title: const Text('Logout'),
+              onTap: () => _logout(context),
             ),
             ListTile(
               leading: Icon(Icons.message),

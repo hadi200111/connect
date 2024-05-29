@@ -1,6 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect/LibraryPage/LibraryPage.dart';
-import 'package:connect/main.dart';
 import 'package:flutter/material.dart';
 
 class AddCategoryDialog extends StatelessWidget {

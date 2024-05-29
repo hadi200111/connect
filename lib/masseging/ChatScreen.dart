@@ -55,13 +55,6 @@ class ChatScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              message.text,
-                              style: TextStyle(
-                                  color:
-                                      isSentByMe ? Colors.white : Colors.black),
-                            ),
-                            SizedBox(height: 5),
-                            Text(
                               message.senderId,
                               style: TextStyle(
                                 color: isSentByMe
@@ -70,6 +63,13 @@ class ChatScreen extends StatelessWidget {
                                 fontSize: 12,
                               ),
                             ),
+                            Text(
+                              message.text,
+                              style: TextStyle(
+                                  color:
+                                      isSentByMe ? Colors.white : Colors.black),
+                            ),
+                            SizedBox(height: 5),
                           ],
                         ),
                       ),

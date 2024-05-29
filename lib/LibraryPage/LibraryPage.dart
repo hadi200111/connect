@@ -1,8 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect/Library.dart';
 import 'package:connect/LibraryPage/AddCategoryDialog.dart';
-import 'package:connect/main.dart';
 import 'package:flutter/material.dart';
+
+import '../WelcomeLogIn/LoginPage.dart';
 
 String myid = "";
 Map<String, Map<String, List<String>>> _categories = {};
